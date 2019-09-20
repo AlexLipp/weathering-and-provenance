@@ -1,6 +1,6 @@
 # Sedimentary compositions in terms of weathering and provenance 
 
-Data and R scripts utilised in the publication "Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling".
+Data and R scripts utilised in the publication *"Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling"*.
 
 ## Code
 
@@ -10,7 +10,7 @@ This document demonstrates in `R` the application of principal component analysi
 
 It also contains a function written in `R` which calculates the coefficients omega and psi for any major elemental composition (`find_coefficients`) as well as functions to calculate the model residuals (`find_residuals`) and the fitted values (`find_fit`). 
 
-The scripts require R 3.6.1
+The scripts require `R` v3.6.1
 
 ## Data
 
