@@ -4,7 +4,7 @@ Data and `R` scripts utilised in the publication *"Major-element composition of 
 
 ## Code
 
-The document `data_analysis.html` is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the data. It can be viewed in any browser.
+The document `data_analysis.html` is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the data. This file can be viewed in any browser.
 
 This document demonstrates in `R` the application of principal component analysis on the dataset of sedimentary rock major element compositions, and the projection of other datasets onto these components. 
 
