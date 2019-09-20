@@ -1,6 +1,6 @@
 # Sedimentary compositions in terms of weathering and provenance 
 
-Data and R scripts utilised in the publication *"Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling"*.
+Data and `R` scripts utilised in the publication *"Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling"*.
 
 ## Code
 
