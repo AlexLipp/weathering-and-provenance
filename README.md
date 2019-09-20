@@ -12,5 +12,4 @@ If this script is used, please cite the original paper.
 
 ## Data
 
-Data used in the publication is contained in the folder "data" 
-Contents: 
+Data used in the publication is contained in the folder "data". References for data sources is found in `data_references.pdf`, alongside the data. 
