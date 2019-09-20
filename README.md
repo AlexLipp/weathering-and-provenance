@@ -1,10 +1,10 @@
 # Sedimentary compositions in terms of weathering and provenance 
 
-Data and R scripts utilised in the publication "Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling" [link to EarthArXiv paper]. Please cite this paper if the scripts are utilised.
+Data and R scripts utilised in the publication "Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling".
 
 ## Code
 
-The document "data_analysis.html" is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the data. It can be viewed in any browser.
+The document `data_analysis.html` is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the data. It can be viewed in any browser.
 
 This document demonstrates in `R` the application of principal component analysis on the dataset of sedimentary rock major element compositions, and the projection of other datasets onto these components. 
 
@@ -14,4 +14,4 @@ The scripts require R 3.6.1
 
 ## Data
 
-Data used in the publication is contained in the folder "data". References for data sources is found in `data_references.pdf`, alongside the data. 
+Data used in the publication is contained in the folder `data/`. References for data sources is found in `data_references.pdf`, alongside the data. 
