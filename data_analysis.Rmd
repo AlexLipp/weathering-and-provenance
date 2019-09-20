@@ -1,0 +1,203 @@
+---
+title: "Sedimentary compositions in terms of weathering and provenance"
+author: "Alex Lipp, agl18@ic.ac.uk"
+date: "17 September 2019"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This is a companion document to the paper _"Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling"_. This shows and annotates code which performs statistical analyses described in the paper. Functions are defined which allow the calculation of the coefficients $\omega$ and $\psi$ for any major elemental composition, as well as returning the model fitted values and the model residuals. The data is available on [GitHub](https://github.com/AlexLipp/weathering-and-provenance)
+
+Text written in `this font` can be run in any `R` script. "##" indicates the output in the `R` terminal should the preceding code be run.
+
+The scripts are written in `R` version 3.6.1. 
+
+# Data Analysis
+## Preparing and loading in data
+
+Data is required to be in the order: SiO~2~, Al~2~O~3~, Fe~2~O~3~, MgO, Na~2~O, CaO, K~2~O. Fe~2~O~3~ represents *total* iron. Elemental data can be converted to wt% oxide  [by multiplying by stoichiometric factors.](https://www.jcu.edu.au/advanced-analytical-centre/services-and-resources/resources-and-extras/element-to-stoichiometric-oxide-conversion-factors) It *does not* need to be normalised to 100%, however if it is, the results will be the same. 
+
+Here we load in the sedimentary rock data-set, the Toorongo weathering profile and the Crater Lake igneous suite. The first few rows of the sedimentary rock dataset are displayed:
+
+```{r}
+sedimentary_rocks <- read.csv("data/sedimentary_rocks.csv")[,2:8]
+toorongo <- read.csv("data/toorongo_soil.csv")[,2:8]
+crater_lake <- read.csv("data/craterlake_igneous.csv")[,5:11]
+head(sedimentary_rocks)
+```
+
+
+## CLR transformation 
+
+Before Principal Component Analysis can be applied to compositional data it must be log-ratio transformed. In this instance we use the implementation within the `compositions` packages. This package can be installed with `install.packages("compositions")`.
+After loading the package we $clr$ transform the data-sets and then 'cast' them to `dataframes`. The first few rows of the $clr$ transformed sedimentary rock data-set are shown.
+
+```{r,message=FALSE}
+library(compositions)
+sedimentary_rocks_clr <- data.frame(clr(sedimentary_rocks))
+toorongo_clr <- data.frame(clr(toorongo))
+crater_lake_clr <- data.frame(clr(crater_lake))
+head(sedimentary_rocks_clr)
+```
+
+## Principal Component Analysis
+
+Now that the data-sets have been $clr$ transformed, PCA can be applied. This is done using the `princomp` function. Below we perform PCA on the sedimentary rocks and store the results in the object `sedimentary_rocks_pca`. To calculate the amount of variance contained on each principal component we first calculate the variance of each principal component, which is the square of the standard deviation on that component (`sedimentary_rocks_pca$sdev`). Then we simply normalise this to the total amount of variance, and take the cumulative sum. This shows that ~85% of the total variance is contained on the first three principal components.   
+
+```{r}
+sedimentary_rocks_pca <- princomp(sedimentary_rocks_clr)
+variance_sed_rocks <- (sedimentary_rocks_pca$sdev)^2
+proportional_var_explained <- cumsum((variance_sed_rocks)/sum(variance_sed_rocks))
+print(proportional_var_explained)
+```
+
+The "scores" of each data-point and the "loadings" of each original oxide variable can be accessed as follows. Below we print out the loadings on the first principal component. This has negative loadings on CaO and Na~2~O and positive loadings for everything else, which suggests these components behave very differently to the others. We also print out the first few rows of the PCA scores. Both of these can be fed into any plotting package (e.g., `ggplot2`) to generate a PCA biplot.
+
+
+```{r}
+pc1_loadings<-sedimentary_rocks_pca$loadings[,1]
+pc1_loadings
+head(sedimentary_rocks_pca$scores)
+```
+
+It's also possible to project other data-sets onto these principal components. First however they must be "centred" to the sedimentary rock dataset. This involves subtracting the mean sedimentary rock data-set from all of the compositions. Below we project the Toorongo soil profile compositions and the Crater Lake igneous compositions onto the principal components of the sedimentary rock dataset. 
+
+```{r}
+centre_sedimentary_rock_clr <- sedimentary_rocks_pca$center # Extract centre of sedimentary dataset
+# Center the Toorongo and Crater Lake datasets to the sedimentary rocks
+centred_toorongo_clr <- toorongo_clr - (sapply(centre_sedimentary_rock_clr, function(x) rep(x, nrow(toorongo_clr))))
+centred_crater_lake_clr <- crater_lake_clr - (sapply(centre_sedimentary_rock_clr, function(x) rep(x, nrow(crater_lake_clr))))
+
+# Project them onto the principal components of sedimentary rock dataset
+sedrock_pca_loadings <- data.frame(sedimentary_rocks_pca$loadings[, ])
+
+toorongo_pc_scores <- data.frame(as.matrix(centred_toorongo_clr) %*% as.matrix(sedrock_pca_loadings))
+crater_lake_pc_scores <- data.frame(as.matrix(centred_crater_lake_clr) %*% as.matrix((sedimentary_rocks_pca$loadings)))
+```
+
+These scores can be plotted up together to aid interpretation. For example, the following lines plot up the 1st and 2nd principal components of the sedimentary rock data-set with the Toorongo soil profile and the Crater Lake suite projected onto it. This can be adapted to plot other components, for example the 3rd by replacing "Comp.2" in all mentions with "Comp.3". This uses the `ggplot` plotting package. These plots are simply 2D projections of the 3D plots shown in the original paper. 
+
+```{r}
+library(ggplot2)
+sed_rock_scores <- data.frame(sedimentary_rocks_pca$scores)
+p <- ggplot(sed_rock_scores, aes(x = Comp.1, y = Comp.2)) + 
+  geom_point(colour="lightgrey") + coord_equal() + theme_bw()
+p <- p + geom_point(
+      data = toorongo_pc_scores,
+      colour = "#e7298a",
+      aes(x = Comp.1, y = Comp.2))
+p <- p + geom_point(
+      data = crater_lake_pc_scores,
+      colour ="#66a61e",
+      aes(x =Comp.1, y = Comp.2))
+p
+```
+
+
+# Calculating $\psi$ and $\omega$
+
+## Deriving $\hat{\mathbf{p}}$ and $\hat{\mathbf{w}}$
+
+$\hat{\mathbf{p}}$ and $\hat{\mathbf{w}}$ are derived by taking the first principal components of the Crater Lake and Toorongo datasets respectively. This is calculated below and the amount of variance explained on this first component is printed. 
+
+```{r}
+w <- princomp(toorongo_clr)$loadings[, "Comp.1"]
+p <- princomp(crater_lake_clr)$loadings[, "Comp.1"]
+w
+p
+```
+The first principal component of these datasets contain respectively 98% and 95% of the total variance:
+
+```{r}
+toorongo_pc_var <- (princomp(toorongo_clr)$sdev)^2
+variance_explained_toorongo <- cumsum(toorongo_pc_var/sum(toorongo_pc_var))
+variance_explained_toorongo
+crater_lake_pc_var <- (princomp(crater_lake_clr)$sdev)^2
+variance_explained_crater_lake <- cumsum(crater_lake_pc_var/sum(crater_lake_pc_var))
+variance_explained_crater_lake
+```
+
+This indicates that both these data-sets are effectively one dimensional and be very well fitted using a linear trend.
+
+## Analytical solution for $\psi$ and $\omega$
+
+Here we implement the analytical solution for $\psi$ and $\omega$ shown in Section 5.1 in the paper. These `R` implementations can be applied to any $clr$ transformed data-set. 
+
+The function below calculates the coefficients $\psi$ and $\omega$ for a $clr$ transformed dataset which is taken as an argument. It returns $\psi$ and $\omega$ relative to UCC in [Rudnick & Gao, 2003](https://doi.org/10.1016/B0-08-043751-6/03016-4) using the values for $\hat{\mathbf{p}}$ and $\hat{\mathbf{w}}$ derived above. 
+
+```{r}
+
+find_coefficients <- function(clr) {
+    w <-  c(0.2619174,  0.4259264,  0.1595349,  0.1079454, +
+              -0.5224674, -0.6324979,  0.1996411) 
+    p <- c( 0.23373465,  0.09797867, -0.23159232, -0.60061708, +
+            0.24779572, -0.33628409,  0.58898446)
+    w.p <- sum(w * p)
+    c <- p - (w.p * w)
+    lamda <- 1 / (sqrt(1 - (w.p ^ 2)))
+    c_hat <- c * lamda
+    UCC_clr <- c(2.333699,	0.8690621,	-0.1423602,	-0.9570468,	+
+                 -0.6805154,	-0.5871532,	-0.835686)
+    clrcent <- clr - (sapply(UCC_clr, function(x) rep(x, nrow(clr))))
+    gamma <- as.matrix(clrcent) %*% c_hat
+    psi <- lamda * gamma
+    omega_p <- as.matrix(clrcent) %*% w
+    omega <- omega_p - w.p * psi
+    coefficients <- data.frame(omega = omega, psi = psi)
+    return(coefficients)
+} 
+
+```
+
+For example, for the Crater Lake suite we calculate their coefficients and show the first few heads: 
+```{r}
+crater_lake_coeffs <- find_coefficients(crater_lake_clr)
+head(crater_lake_coeffs)
+```
+
+
+## Calculating the residuals and fitted compositions 
+
+These two functions `find_fit` and `find_residuals` return respectively the modelled compositions for the $clr$ dataset, and the residuals between the $clr$ data and the fitted data. These functions require the function `find_coefficients` to already be defined. Likewise, `find_residuals` requires the function `find_fit` to be defined.
+
+```{r}
+find_fit <- function(clr) {
+  w <- c(0.2619174,  0.4259264,  0.1595349,  0.1079454, +
+           -0.5224674, -0.6324979,  0.1996411) 
+  p <- c( 0.23373465,  0.09797867, -0.23159232, -0.60061708, +
+            0.24779572, -0.33628409,  0.58898446)
+  coefficients <- find_coefficients(clr)
+  omega_times_w <-
+    data.frame(do.call(rbind, lapply(coefficients$omega, function(x)
+      x * w)))
+  psi_times_p <-
+    data.frame(do.call(rbind, lapply(coefficients$psi, function(x)
+      x * p)))
+  UCC_clr <- c(2.333699,	0.8690621,	-0.1423602,	-0.9570468,	+
+                 -0.6805154,	-0.5871532,	-0.835686)
+
+  fit <- omega_times_w + psi_times_p + (sapply(UCC_clr, function(x) rep(x, nrow(clr))))
+  names(fit) <- names(clr)
+  return(fit)
+} 
+find_residuals <- function(clr) {
+  return(clr - find_fit(clr))
+}
+```
+
+For example, for the Crater Lake suite we calculate the fitted values and residuals and show the first few rows: 
+
+```{r}
+fitted_igneous_clr <- find_fit(crater_lake_clr)
+head(fitted_igneous_clr)
+residuals_igneous_clr <- find_residuals(crater_lake_clr)
+head(residuals_igneous_clr)
+```
+
+
