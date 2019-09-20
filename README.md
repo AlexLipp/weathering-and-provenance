@@ -4,11 +4,13 @@ Data and R scripts utilised in the publication "Major-element composition of sed
 
 ## Code
 
-The R-markdown document "YYYYYYYYYYYY.Rmd" contains a function written in `R` which calculates the coefficients omega and psi for any major elemental composition (`find_coefficients`) as well as functions to calculate the model residuals (`find_residuals`) and the fitted values (`find_fit`). The document also demonstrates the application of principal component analysis on the dataset of sedimentary rock major element compositions. 
+The document "data_analysis.html" is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the data. It can be viewed in any browser.
 
-This R-markdown document requires R X.X.X and can be viewed in Rstudio[link]. 
+This document demonstrates in `R` the application of principal component analysis on the dataset of sedimentary rock major element compositions, and the projection of other datasets onto these components. 
 
-If this script is used, please cite the original paper.
+It also contains a function written in `R` which calculates the coefficients omega and psi for any major elemental composition (`find_coefficients`) as well as functions to calculate the model residuals (`find_residuals`) and the fitted values (`find_fit`). 
+
+The scripts require R 3.6.1
 
 ## Data
 
