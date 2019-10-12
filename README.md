@@ -2,6 +2,8 @@
 
 Data and `R` scripts utilised in the publication *"Major-element composition of sediments in terms of weathering and provenance: implications for crustal recycling"*.
 
+[![DOI](https://zenodo.org/badge/209641394.svg)](https://zenodo.org/badge/latestdoi/209641394)
+
 ## Code
 
 The document `data_analysis.html` is an [R-markdown document](https://rmarkdown.rstudio.com/) containing code examples to recreate the analysis described in the paper. This file can be viewed in any browser. 
@@ -16,3 +18,5 @@ The scripts require `R` v3.6.1
 ## Data
 
 Data used in the publication is contained in the folder `data/`. References for data sources is found in `data_references.pdf`, alongside the data. 
+
+
